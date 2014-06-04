@@ -49,7 +49,7 @@ foreach ($servers as $name => $url) {
 
     # requests without trailing slash will be forwarded to include slash
     location = /' . $name . ' {
-        return 301 $scheme://$http_host$request_uri/;
+        return 301 $scheme://$http_host$uri/$is_args$args;
     }';
 }
 
