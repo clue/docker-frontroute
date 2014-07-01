@@ -31,7 +31,7 @@ Further runs will be immediate, as the image will be cached locally.
 $ docker run -d -p 80:80 --link ttrss:ttrss clue/frontroute
 ```
 
-You can supply any number of linked containers. Each of them has to be given in the format `{ImageName}/{RoutePath}`.
+You can supply any number of linked containers. Each of them has to be given in the format `{ImageName}:{RoutePath}`.
 
 This will start the frontrouter container in a detached session in the background.
 This container is disposable, as it doesn't store any sensitive information at all.
