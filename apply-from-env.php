@@ -1,25 +1,70 @@
 #!/usr/bin/env php
 <?php
 
-function pf($string, $end)
+function env($name, $default = null)
 {
-    return (substr($string, -strlen($end)) === $end ? substr($string, 0, -strlen($end)) : false);
+    $ret = getenv($name);
+    if ($ret === false) {
+        $ret = $default;
+    }
+    return $ret;
 }
 
+function getUrlFromEnv($prefix, $name)
+{
+    // use explicit port definition
+    $port = env($name . '_port');
+    if ($port !== null) {
+        $url = env($prefix . '_PORT_' . $port . '_TCP');
+        if ($url === null) {
+            echo 'Error: Explicitly set port ' . $port . ' for ' . $prefix . ', but not TCP port exposed' . PHP_EOL;
+            exit(1);
+        }
+        return $url;
+    }
+
+    // check for preferred port definitions
+    foreach (array(80, 8080, 8000) as $port) {
+        $best = env($prefix . '_PORT_' . $port . '_TCP');
+        if ($best !== null) {
+            return $best;
+        }
+    }
+
+    // use first available port definition
+    $url = env($prefix . '_PORT');
+
+    // still no URL found
+    if ($url === null && $prefix !== 'SCRIPT') {
+        echo 'Skip ' . $prefix . ' because it has no port defined' . PHP_EOL;
+    }
+
+    return $url;
+}
+
+// collected server instances
 $servers = array();
 
 foreach ($_SERVER as $key => $value) {
-    $name = pf($key, '_PORT_80_TCP_ADDR');
-    if ($name === false) {
-        continue;
+    if (substr($key, -5) === '_NAME') {
+        $prefix = substr($key, 0, -5);
+
+        $name = $value;
+        $pos = strrpos($name, '/');
+        if ($pos !== false) {
+            $name = substr($name, $pos + 1);
+        }
+
+        $url = getUrlFromEnv($prefix, $name);
+        if ($url === null) {
+            continue;
+        }
+
+        $url = str_replace('tcp://', 'http://', $url);
+        $servers[$name] = $url;
+
+        echo '/' . $name . ' => ' . $url . PHP_EOL;
     }
-    
-    $url = 'http://' . str_replace('tcp://', '', $value) . '/';
-    
-    $name = strtolower($name);
-    $servers[$name] = $url;
-    
-    echo '/' . $name . ' => ' . $url . PHP_EOL;
 }
 
 if (!$servers) {
@@ -38,11 +83,11 @@ foreach ($servers as $name => $url) {
     # proxy for ' . $name . '
     location /' . $name . '/ {
         proxy_pass ' . $url . ';
-        
+
         # rewrite redirect / location headers to match this subdir
         proxy_redirect default;
         proxy_redirect / $scheme://$http_host/' . $name . '/;
-        
+
         proxy_set_header Host $http_host;
         proxy_set_header X-Forwarded-For $remote_addr;
     }
