@@ -1,25 +1,45 @@
 #!/usr/bin/env php
 <?php
 
-function pf($string, $end)
+function env($name, $default = null)
 {
-    return (substr($string, -strlen($end)) === $end ? substr($string, 0, -strlen($end)) : false);
+    $ret = getenv($name);
+    if ($ret === false) {
+        $ret = $default;
+    }
+    return $ret;
 }
 
 $servers = array();
 
 foreach ($_SERVER as $key => $value) {
-    $name = pf($key, '_PORT_80_TCP_ADDR');
-    if ($name === false) {
-        continue;
+    if (substr($key, -5) === '_NAME') {
+        $prefix = substr($key, 0, -5);
+
+        $name = $value;
+        $pos = strrpos($name, '/');
+        if ($pos !== false) {
+            $name = substr($name, $pos + 1);
+        }
+
+        if (env($prefix . '_PORT') === null) {
+            if ($prefix !== 'SCRIPT') {
+                echo 'Skip ' . $prefix . ' because it has no port defined' . PHP_EOL;
+            }
+            continue;
+        }
+
+        $url = env($prefix . '_PORT_80_TCP');
+        if ($url === null) {
+            echo 'No URL for ' . $prefix . ' (' . $prefix . '_PORT_80_TCP) found' . PHP_EOL;
+            exit(1);
+        }
+        $url = str_replace('tcp://', 'http://', $url);
+
+        $servers[$name] = $url;
+
+        echo '/' . $name . ' => ' . $url . PHP_EOL;
     }
-    
-    $url = 'http://' . str_replace('tcp://', '', $value) . '/';
-    
-    $name = strtolower($name);
-    $servers[$name] = $url;
-    
-    echo '/' . $name . ' => ' . $url . PHP_EOL;
 }
 
 if (!$servers) {
@@ -38,11 +58,11 @@ foreach ($servers as $name => $url) {
     # proxy for ' . $name . '
     location /' . $name . '/ {
         proxy_pass ' . $url . ';
-        
+
         # rewrite redirect / location headers to match this subdir
         proxy_redirect default;
         proxy_redirect / $scheme://$http_host/' . $name . '/;
-        
+
         proxy_set_header Host $http_host;
         proxy_set_header X-Forwarded-For $remote_addr;
     }
