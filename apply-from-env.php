@@ -10,6 +10,10 @@ function env($name, $default = null)
     return $ret;
 }
 
+// expected port numbers
+$ports = array(80, 8080, 8000);
+
+// collected server instances
 $servers = array();
 
 foreach ($_SERVER as $key => $value) {
@@ -29,7 +33,13 @@ foreach ($_SERVER as $key => $value) {
             continue;
         }
 
-        $url = env($prefix . '_PORT_80_TCP');
+        $url = null;
+        foreach ($ports as $port) {
+            $url = env($prefix . '_PORT_' . $port . '_TCP');
+            if ($url !== null) {
+                break;
+            }
+        }
         if ($url === null) {
             echo 'No URL for ' . $prefix . ' (' . $prefix . '_PORT_80_TCP) found' . PHP_EOL;
             exit(1);
