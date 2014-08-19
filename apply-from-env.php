@@ -12,6 +12,17 @@ function env($name, $default = null)
 
 function getUrlFromEnv($prefix, $name)
 {
+    // use explicit port definition
+    $port = env($name . '_port');
+    if ($port !== null) {
+        $url = env($prefix . '_PORT_' . $port . '_TCP');
+        if ($url === null) {
+            echo 'Error: Explicitly set port ' . $port . ' for ' . $prefix . ', but not TCP port exposed' . PHP_EOL;
+            exit(1);
+        }
+        return $url;
+    }
+
     // check for preferred port definitions
     foreach (array(80, 8080, 8000) as $port) {
         $best = env($prefix . '_PORT_' . $port . '_TCP');
