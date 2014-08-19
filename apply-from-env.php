@@ -26,26 +26,26 @@ foreach ($_SERVER as $key => $value) {
             $name = substr($name, $pos + 1);
         }
 
-        if (env($prefix . '_PORT') === null) {
+        // use first available port definition
+        $url = env($prefix . '_PORT');
+
+        if ($url === null) {
             if ($prefix !== 'SCRIPT') {
                 echo 'Skip ' . $prefix . ' because it has no port defined' . PHP_EOL;
             }
             continue;
         }
 
-        $url = null;
+        // check for preferred port definitions
         foreach ($ports as $port) {
-            $url = env($prefix . '_PORT_' . $port . '_TCP');
-            if ($url !== null) {
+            $best = env($prefix . '_PORT_' . $port . '_TCP');
+            if ($best !== null) {
+                $url = $best;
                 break;
             }
         }
-        if ($url === null) {
-            echo 'No URL for ' . $prefix . ' (' . $prefix . '_PORT_80_TCP) found' . PHP_EOL;
-            exit(1);
-        }
-        $url = str_replace('tcp://', 'http://', $url);
 
+        $url = str_replace('tcp://', 'http://', $url);
         $servers[$name] = $url;
 
         echo '/' . $name . ' => ' . $url . PHP_EOL;
