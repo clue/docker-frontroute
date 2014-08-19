@@ -10,8 +10,26 @@ function env($name, $default = null)
     return $ret;
 }
 
-// expected port numbers
-$ports = array(80, 8080, 8000);
+function getUrlFromEnv($prefix, $name)
+{
+    // check for preferred port definitions
+    foreach (array(80, 8080, 8000) as $port) {
+        $best = env($prefix . '_PORT_' . $port . '_TCP');
+        if ($best !== null) {
+            return $best;
+        }
+    }
+
+    // use first available port definition
+    $url = env($prefix . '_PORT');
+
+    // still no URL found
+    if ($url === null && $prefix !== 'SCRIPT') {
+        echo 'Skip ' . $prefix . ' because it has no port defined' . PHP_EOL;
+    }
+
+    return $url;
+}
 
 // collected server instances
 $servers = array();
@@ -26,23 +44,9 @@ foreach ($_SERVER as $key => $value) {
             $name = substr($name, $pos + 1);
         }
 
-        // use first available port definition
-        $url = env($prefix . '_PORT');
-
+        $url = getUrlFromEnv($prefix, $name);
         if ($url === null) {
-            if ($prefix !== 'SCRIPT') {
-                echo 'Skip ' . $prefix . ' because it has no port defined' . PHP_EOL;
-            }
             continue;
-        }
-
-        // check for preferred port definitions
-        foreach ($ports as $port) {
-            $best = env($prefix . '_PORT_' . $port . '_TCP');
-            if ($best !== null) {
-                $url = $best;
-                break;
-            }
         }
 
         $url = str_replace('tcp://', 'http://', $url);
