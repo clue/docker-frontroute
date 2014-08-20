@@ -60,7 +60,10 @@ foreach ($_SERVER as $key => $value) {
             continue;
         }
 
-        $url = str_replace('tcp://', 'http://', $url);
+        // base path (sub-folder)
+        $path = '/';
+
+        $url = str_replace('tcp://', 'http://', $url) . $path;
         $servers[$name] = $url;
 
         echo '/' . $name . ' => ' . $url . PHP_EOL;
