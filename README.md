@@ -18,21 +18,54 @@ No additional configuration required, besides linking each of your existing web 
 ## Usage
 
 This docker image is available as a [trusted build on the docker index](https://index.docker.io/u/clue/frontroute/),
-so using it is as simple as running:
-
-```bash
-$ docker run clue/frontroute
-```
-
-Using this image for the first time will start a download automatically.
+so using this image for the first time will start a download automatically.
 Further runs will be immediate, as the image will be cached locally.
 
+As an example, let's assume you own the domain `example.com` and you already have running several docker containers
+with their webservers exposed to the outside like this:
+
 ```bash
-$ docker run -d -p 80:80 --link ttrss:ttrss clue/frontroute
+$ docker run -d -p 81:80 --name ttrss clue/ttrss
+$ docker run -d -p 82:80 --name h5ai clue/h5ai
+```
+
+In this example, you'd have to access your different webservers like this:
+
+```
+http://example.com:81/
+http://example.com:82/
+```
+
+This certainly doesn't have a particularly good usability.
+Port numbers are difficult to remember and do not map well to the service actually offered.
+Also, available port numbers are a limited resource.
+
+Wouldn't it be nice if we could use clean URLs using sub-paths instead of ports?
+
+```
+http://example.com/ttrss/
+http://example.com/h5ai/
+```
+
+This docker image makes it trivially easy to do so.
+Instead of exposing each individual docker image to the outside,
+we can use this docker image to place a lightweight and fast reverse proxy (nginx) in front of the other images.
+
+Following the above example, we simple drop the port statements for our webserver instances like this:
+
+```bash
+$ docker run -d --name ttrss clue/ttrss
+$ docker run -d --name h5ai clue/h5ai
+```
+
+Finally, all we have to do is start our new front router container by linking each of the webserver instances like this:
+
+```bash
+$ docker run -d -p 80:80 --link ttrss:ttrss --link h5ai:h5ai clue/frontroute
 ```
 
 You can supply any number of linked containers. Each of them has to be given in the format `{ImageName}:{RoutePath}`.
 
 This will start the frontrouter container in a detached session in the background.
-This container is disposable, as it doesn't store any sensitive information at all.
+This container is disposable, as it doesn't store any information at all.
 If you don't need it anymore, you can `stop` and `remove` it.
