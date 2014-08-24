@@ -64,8 +64,23 @@ Finally, all we have to do is start our new front router container by linking ea
 $ docker run -d -p 80:80 --link ttrss:ttrss --link h5ai:h5ai clue/frontroute
 ```
 
+This will start the frontrouter container in a detached session in the background.
+
 You can supply any number of linked containers. Each of them has to be given in the format `{ImageName}:{RoutePath}`.
 
-This will start the frontrouter container in a detached session in the background.
+## Ports
+
+For each linked container, it will automatically expose its webserver port through the reverse proxy.
+If your container exposes several ports, it will try to use one of the common ports (80, 8080 and 8000) first and
+will otherwise fall back to the first available port.
+
+You can also explicitly define a custom port for each webserver by passing an environment variable like this:
+
+```
+--env h5ai_port=80
+```
+
+## Cleanup
+
 This container is disposable, as it doesn't store any information at all.
 If you don't need it anymore, you can `stop` and `remove` it.
