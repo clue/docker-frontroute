@@ -80,6 +80,22 @@ You can also explicitly define a custom port for each webserver by passing an en
 --env h5ai_port=80
 ```
 
+## Default route
+
+Now that every sub-route is set up and running, what happens when you access the main (default) URL?
+
+```
+http://example.com/
+```
+
+Accessing this URL will return a `404 File not found` error.
+
+You can also explicitly define a default route by passing an environment variable like this:
+
+```
+--env default=h5ai
+```
+
 ## Cleanup
 
 This container is disposable, as it doesn't store any information at all.
