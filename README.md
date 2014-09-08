@@ -9,11 +9,11 @@ Among others, it can be used to easily start up several web-based containers lik
 a wiki and much more.
 
 Once your web-based containers are up, you may want to expose them to the outside world (the internet).
-Because each container comes with an own webserver, one has to expose each to a dedicated port (which tend to be *ugly*),
+Because each container comes with an own webserver, one has to expose each to a dedicated port (which tends to be *ugly*),
 bind to several IPs (which are not always available) or use one of the more complex options (DNS or SSL/SNI-based load balancer) etc.
 
 As an alternative, this docker image allows you to spin up a reverse proxy in front of your existing web containers.
-No additional configuration required, besides linking each of your existing web containers to the this container.
+No additional configuration required, besides linking each of your existing web containers to this container.
 
 ## Usage
 
@@ -66,7 +66,7 @@ $ docker run -d -p 80:80 --link ttrss:ttrss --link h5ai:h5ai clue/frontroute
 
 This will start the frontrouter container in a detached session in the background.
 
-You can supply any number of linked containers. Each of them has to be given in the format `{ImageName}:{RoutePath}`.
+You can supply any number of linked containers. Each of them has to be given in the format `{ContainerName}:{RoutePath}`.
 
 ## Ports
 
