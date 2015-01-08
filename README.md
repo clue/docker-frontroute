@@ -96,6 +96,8 @@ You can also explicitly define a default route by passing an environment variabl
 --env default=h5ai
 ```
 
+Accessing this URL will now result in a `301 Moved Permanently` status code that will redirect to the `h5ai` route.
+
 ## Cleanup
 
 This container is disposable, as it doesn't store any information at all.
