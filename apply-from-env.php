@@ -96,7 +96,7 @@ foreach ($servers as $name => $url) {
 
     # proxy for ' . $name . '
     location /' . $name . '/ {
-        proxy_pass ' . $url . ';
+        proxy_pass ' . $url . ' . '/' . ' . $name . '/;
 
         # rewrite redirect / location headers to match this subdir
         proxy_redirect default;
